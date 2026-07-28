@@ -1,13 +1,13 @@
-import { RoutesProvider } from './app/router/routesProvider'
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { RoutesProvider } from './app/router/routesProvider';
 
-
-function App() {
-
+export const App: React.FC = () => {
   return (
-    <>
-    <RoutesProvider />
-    </>
-  )
-}
+    <BrowserRouter>
+      <RoutesProvider />
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;

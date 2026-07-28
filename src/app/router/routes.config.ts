@@ -1,36 +1,36 @@
-import type { AppRoute } from "./routes.types";
-import {BaseLayout} from "../Layouts/BaseLayout";
-import {DashboardPage} from "../../pages/DashboardPage";
-import {LandingPage} from "../../pages/LandingPage";
+import React from 'react';
+import { LandingPage } from '../../pages/LandingPage';
+import { DashboardPage } from '../../pages/DashboardPage';
+import { AuthPage } from '../../pages/AuthPage';
+import { MainLayout } from '../Layouts/BaseLayout';
+import { AdminLayout } from '../Layouts/AdminLayout';
 
+export interface RouteConfig {
+  path: string;
+  component: React.ComponentType;
+  layout?: React.ComponentType<{ children?: React.ReactNode }>;
+  isPrivate?: boolean;
+  roles?: string[];
+}
 
-
-export const routes: AppRoute[] = [
+export const routes: RouteConfig[] = [
   {
-    path: "/",
-    layout: BaseLayout,
+    path: '/',
     component: LandingPage,
+    layout: MainLayout,
+    isPrivate: false,
   },
-  // {
-  //   path: "/auth",
-  //   layout: AuthLayout,
-  //   component: LoginPage,
-  // },
   {
-    path: "/dashboard",
-    layout: BaseLayout,
-    component: DashboardPage,
-    isPrivate: true,
-    roles: ["admin"], // Доступ только для владельца и админа
+    path: '/auth',
+    component: AuthPage,
+    // без layout
+    isPrivate: false,
   },
-
-
-  // {
-  //   path: "/settings",
-  //   layout: BaseLayout,
-  //   component: SettingsPage,
-  //   isPrivate: true,
-  // },
-
- 
+  {
+    path: '/admin',
+    component: DashboardPage,
+    layout: AdminLayout,
+    // isPrivate: true,
+    // roles: ['ADMIN'],
+  },
 ];
