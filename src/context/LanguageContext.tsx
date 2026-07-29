@@ -16,6 +16,8 @@ export const translations = {
       upcomingSub: 'Присоединяйся к нашим воркшопам, буткемпам и питч-дням',
       viewAll: 'Смотреть все',
       viewDetails: 'Подробнее',
+            goToProfile: 'Перейти в личный кабинет',
+
     },
     auth: {
       loginTitle: 'С возвращением!',
@@ -54,6 +56,8 @@ export const translations = {
       upcomingSub: "Vorkshoplar, butkemplar va pitch kunlarimizda qatnashing",
       viewAll: "Barchasini ko'rish",
       viewDetails: 'Batafsil',
+            goToProfile: 'Shaxsiy kabinetga o‘tish',
+
     },
     auth: {
       loginTitle: 'Xush kelibsiz!',
@@ -92,6 +96,8 @@ export const translations = {
       upcomingSub: 'Join our workshops, session bootcamps and pitch days',
       viewAll: 'View All',
       viewDetails: 'View Details',
+            goToProfile: 'Go to Profile',
+
     },
     auth: {
       loginTitle: 'Welcome Back!',

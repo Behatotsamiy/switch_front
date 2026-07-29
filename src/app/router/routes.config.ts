@@ -2,6 +2,7 @@ import React from 'react';
 import { LandingPage } from '../../pages/LandingPage';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { AuthPage } from '../../pages/AuthPage';
+import { ProfilePage } from '../../pages/ProfilePage'; // <--- Новый импорт
 import { MainLayout } from '../Layouts/BaseLayout';
 import { AdminLayout } from '../Layouts/AdminLayout';
 
@@ -27,10 +28,16 @@ export const routes: RouteConfig[] = [
     isPrivate: false,
   },
   {
-    path: '/admin',
+    path: '/profile', // <--- Добавили Личный Кабинет Покупателя/Участника
+    component: ProfilePage,
+    layout: MainLayout,
+    isPrivate: true,
+  },
+  {
+    path: '/admin', // <--- DashboardPage ТОЛЬКО ДЛЯ АДМИНА
     component: DashboardPage,
     layout: AdminLayout,
-    // isPrivate: true,
-    // roles: ['ADMIN'],
+    isPrivate: true,
+    roles: ['ADMIN'],
   },
 ];
