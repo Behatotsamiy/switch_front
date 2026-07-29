@@ -14,40 +14,52 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
-  register: (firstName: string, lastName: string, email: string, pass: string) => Promise<void>;
+  login: (phone: string, password: string) => Promise<void>;
+  register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Укажи URL твоего NestJS бэкенда
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Вспомогательная функция загрузки профиля по токену
+  const fetchUserProfile = async (authToken: string) => {
+    try {
+      // Проверь этот путь! В NestJS часто бывает /auth/profile или /users/me
+      const res = await fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      if (res.ok) {
+        const userData = await res.json();
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        return userData;
+      } else {
+        // Если токен протух или невалиден
+        logout();
+      }
+    } catch (err) {
+      console.error('Ошибка получения профиля:', err);
+    }
+    return null;
+  };
 
   // Проверка авторизации при старте приложения
   useEffect(() => {
     const initAuth = async () => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
-        try {
-          const res = await fetch(`${API_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${savedToken}` },
-          });
-          if (res.ok) {
-            const userData = await res.json();
-            setUser(userData);
-            setToken(savedToken);
-          } else {
-            logout();
-          }
-        } catch {
-          // Если сервер не ответил, сохраняем локальный токен
-        }
+        await fetchUserProfile(savedToken);
       }
       setLoading(false);
     };
@@ -67,9 +79,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(data.message || 'Ошибка при входе');
     }
 
-    localStorage.setItem('token', data.access_token);
-    setToken(data.access_token);
-    setUser(data.user);
+    const authToken = data.accessToken || data.token;
+    localStorage.setItem('token', authToken);
+     localStorage.setItem('refreshToken', data.refreshToken);
+    setToken(authToken);
+
+    // Если бэкенд вернул юзера — берем его, иначе запрашиваем с сервера /users/me
+    if (data.user) {
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } else {
+      await fetchUserProfile(authToken);
+    }
   };
 
   const register = async (firstName: string, lastName: string, email: string, password: string) => {
@@ -84,13 +105,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(data.message || 'Ошибка при регистрации');
     }
 
-    localStorage.setItem('token', data.access_token);
-    setToken(data.access_token);
-    setUser(data.user);
+    const authToken = data.access_token || data.token;
+    localStorage.setItem('token', authToken);
+     localStorage.setItem('refreshToken', data.refreshToken);
+    setToken(authToken);
+
+    if (data.user) {
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } else {
+      await fetchUserProfile(authToken);
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
