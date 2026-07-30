@@ -5,6 +5,7 @@ import { AuthPage } from '../../pages/AuthPage';
 import { ProfilePage } from '../../pages/ProfilePage'; // <--- Новый импорт
 import { MainLayout } from '../Layouts/BaseLayout';
 import { AdminLayout } from '../Layouts/AdminLayout';
+import { EventDetailPage } from '../../pages/EventDetailPage';
 
 export interface RouteConfig {
   path: string;
@@ -40,4 +41,10 @@ export const routes: RouteConfig[] = [
     isPrivate: true,
     roles: ['ADMIN'],
   },
+  {
+    path:'event/:id',
+    component: EventDetailPage,
+    layout: MainLayout,
+    isPrivate: false,
+  }
 ];
