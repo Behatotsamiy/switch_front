@@ -3,13 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Calendar,
   MapPin,
-  QrCode,
   Download,
   ArrowLeft,
   CheckCircle2,
   Sparkles,
   Share2,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
@@ -47,6 +47,13 @@ interface EventData {
   createdAt: string;
 }
 
+interface TicketData {
+  ticketNumber: string;
+  qrCodeDataUrl: string;
+  holder: string;
+  event: { id: string; title: string; startDate: string; location: string };
+}
+
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -56,27 +63,38 @@ export const EventDetailPage: React.FC = () => {
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [registering, setRegistering] = useState<boolean>(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
+
+  const [ticket, setTicket] = useState<TicketData | null>(null);
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const isRegistered = !!registrationId;
+
+  const authHeaders = () => ({
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
+  });
 
   const loadEvent = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/events/${id}`);
-
       if (!response.ok) {
         throw new Error(t.eventDetails?.notFound || 'Мероприятие не найдено');
       }
-
       const data: EventData = await response.json();
       setEvent(data);
 
       if (user && data.registrations) {
-        const userReg = data.registrations.some(
+        const ownReg = data.registrations.find(
           (reg) => reg.userId === user.id && reg.status === 'ACTIVE',
         );
-        setIsRegistered(userReg);
+        setRegistrationId(ownReg?.id ?? null);
+      } else {
+        setRegistrationId(null);
       }
     } catch (err: any) {
       setError(err.message || t.eventDetails?.errorMsg || 'Ошибка при загрузке данных');
@@ -86,11 +104,31 @@ export const EventDetailPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (id) {
-      loadEvent();
+    if (!id) {
+      setError('Некорректная ссылка на событие');
+      setLoading(false);
+      return;
     }
+    loadEvent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user]);
+
+  // Как только знаем registrationId — подтягиваем сам билет с QR-кодом
+  useEffect(() => {
+    if (!registrationId) {
+      setTicket(null);
+      return;
+    }
+    setTicketLoading(true);
+    fetch(`${API_URL}/registrations/${registrationId}/ticket`, { headers: authHeaders() })
+      .then((res) => {
+        if (!res.ok) throw new Error('Не удалось загрузить билет');
+        return res.json();
+      })
+      .then(setTicket)
+      .catch(() => setTicket(null))
+      .finally(() => setTicketLoading(false));
+  }, [registrationId]);
 
   const handleRegister = async () => {
     if (!isAuthenticated) {
@@ -102,31 +140,51 @@ export const EventDetailPage: React.FC = () => {
     try {
       setRegistering(true);
       setRegisterError(null);
-      const token = localStorage.getItem('token');
 
       const response = await fetch(`${API_URL}/registrations`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ eventId: id }),
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || t.eventDetails?.regFailed || 'Не удалось зарегистрироваться');
       }
 
-      setIsRegistered(true);
-      // перезапрашиваем событие, чтобы получить актуальный список регистраций с бэка,
-      // а не додумывать его на фронте
+      // после регистрации бэк возвращает саму Registration — сразу знаем её id,
+      // не дожидаясь перезагрузки события
+      setRegistrationId(data.id);
       await loadEvent();
     } catch (err: any) {
       setRegisterError(err.message || t.eventDetails?.regError || 'Ошибка регистрации');
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!registrationId) return;
+    try {
+      setDownloading(true);
+      const response = await fetch(`${API_URL}/registrations/${registrationId}/ticket/download`, {
+        headers: authHeaders(),
+      });
+      if (!response.ok) throw new Error('Не удалось скачать билет');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'switch-ticket.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || 'Не удалось скачать билет');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -329,32 +387,45 @@ export const EventDetailPage: React.FC = () => {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{formatDate(event.startDate)}</p>
                 </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-2">
-                  <QrCode className="w-36 h-36 text-slate-800 dark:text-slate-200" />
-                  <span className="text-[10px] uppercase font-mono text-slate-400 tracking-widest">
-                    ID: {user?.id?.slice(0, 8) || 'PASS'}
-                  </span>
+                <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-2 min-h-[220px]">
+                  {ticketLoading ? (
+                    <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                  ) : ticket ? (
+                    <>
+                      <img src={ticket.qrCodeDataUrl} alt="QR билета" className="w-40 h-40" />
+                      <span className="text-[10px] uppercase font-mono text-slate-400 tracking-widest">
+                        {ticket.ticketNumber}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400">Не удалось загрузить QR-код</span>
+                  )}
                 </div>
 
                 <div>
                   <div className="font-bold text-slate-800 dark:text-slate-200">
-                    {user?.firstName || user?.lastName || user?.phone || 'Участник'}
+                    {ticket?.holder || user?.firstName || user?.phone || 'Участник'}
                   </div>
                   <div className="text-xs text-slate-400">{t.eventDetails?.ticketConfirmed || 'Билет подтвержден'}</div>
                 </div>
 
                 <button
-                  onClick={() => alert('Download coming soon!')}
-                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-purple-500/20"
+                  onClick={handleDownload}
+                  disabled={downloading || !ticket}
+                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-purple-500/20"
                 >
-                  <Download className="w-4 h-4" /> {t.eventDetails?.downloadTicket || 'Скачать билет (PDF)'}
+                  {downloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {downloading
+                    ? 'Готовим PDF…'
+                    : t.eventDetails?.downloadTicket || 'Скачать билет (PDF)'}
                 </button>
               </div>
             ) : (
               <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-2xl inline-block">
-                  <QrCode className="w-8 h-8" />
-                </div>
                 <h4 className="font-bold text-slate-900 dark:text-white">
                   {t.eventDetails?.ticketTitle || 'Электронный билет'}
                 </h4>
