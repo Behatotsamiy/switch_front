@@ -33,7 +33,7 @@ export const AuthPage: React.FC = () => {
       } else {
         await register(firstName, lastName, email, password);
       }
-      navigate('/profile'); // Переход в профиль после успешного входа
+      navigate('/home'); // Переход в профиль после успешного входа
     } catch (err: any) {
       setError(err.message || 'Произошла ошибка');
     } finally {

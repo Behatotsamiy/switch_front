@@ -26,10 +26,10 @@ export const Header: React.FC = () => {
 
   const navLinks = isAuthenticated
     ? [
-        { href: '/', label: 'Главная' },
+        { href: '/', label: t.nav?.home || 'Главная' },
         { href: '#events', label: t.nav?.events || 'Мероприятия' },
         { href: '#projects', label: t.nav?.projects || 'Проекты' },
-        { href: '/profile', label: 'Личный кабинет' },
+        { href: '/profile', label: t.nav?.profile || 'Личный кабинет' },
       ]
     : [
         { href: '#events', label: t.nav?.events || 'Мероприятия' },

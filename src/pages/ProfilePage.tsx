@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Phone, Calendar, CheckCircle2, Save, MapPin } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user , loading} = useAuth();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -13,10 +13,16 @@ export const ProfilePage: React.FC = () => {
 
   const [enrolledSessions, setEnrolledSessions] = useState<number[]>([1]);
 
-  const sessions = [
-    { id: 1, title: 'Switch Session 2', date: '25-26 Jun, 2026', location: 'Westminster University', tag: 'Bootcamp & Hackathon' },
-    { id: 2, title: 'UI/UX Design Workshop', date: '10 August, 2026', location: 'IT Park Tashkent', tag: 'Tech Workshop' },
-  ];
+
+
+   useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+    }
+  }, [user]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +135,7 @@ export const ProfilePage: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Мои записи на сессии</h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            {sessions.map((item) => {
+            {/* {sessions.map((item) => {
               const isEnrolled = enrolledSessions.includes(item.id);
               return (
                 <div key={item.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
@@ -156,7 +162,7 @@ export const ProfilePage: React.FC = () => {
                   </button>
                 </div>
               );
-            })}
+            })} */}
           </div>
         </div>
 
