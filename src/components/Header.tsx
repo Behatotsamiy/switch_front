@@ -13,12 +13,11 @@ export const Header: React.FC = () => {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  const handleLogout = () => {
-    logout();
-    closeMobileMenu();
-    navigate('/');
-  };
-
+const handleLogout = async () => {
+  await logout();
+  closeMobileMenu();
+  navigate('/');
+};
   // Получаем форматированное имя для отображения
   const displayName = user?.firstName
     ? `${user.firstName}${user.lastName ? ' ' + user.lastName[0] + '.' : ''}`

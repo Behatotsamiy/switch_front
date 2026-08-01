@@ -1,5 +1,4 @@
 import React from 'react';
-import { HeaderControls } from '../../components/HeaderControl';
 
 interface MainLayoutProps {
   children?: React.ReactNode;

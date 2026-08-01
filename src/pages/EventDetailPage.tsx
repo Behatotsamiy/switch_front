@@ -374,66 +374,70 @@ export const EventDetailPage: React.FC = () => {
           </div>
 
           <div className="sticky top-24">
-            {isRegistered ? (
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border-2 border-purple-500/40 text-center space-y-5 shadow-xl relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none" />
+{isRegistered ? (
+  <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border-2 border-purple-500/40 text-center space-y-5 shadow-xl relative overflow-hidden">
+    <div className="absolute -top-12 -right-12 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none" />
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-semibold">
-                  <CheckCircle2 className="w-4 h-4" /> {t.eventDetails?.yourTicket || 'Ваш электронный билет'}
-                </div>
+    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-semibold">
+      <CheckCircle2 className="w-4 h-4" /> {t.eventDetails?.yourTicket || 'Ваш электронный билет'}
+    </div>
 
-                <div>
-                  <h4 className="font-extrabold text-slate-900 dark:text-white text-lg">{event.title}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{formatDate(event.startDate)}</p>
-                </div>
+    <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3 min-h-[220px]">
+      {ticketLoading ? (
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      ) : ticket ? (
+        <>
+          <img src={ticket.qrCodeDataUrl} alt="QR билета" className="w-44 h-44 rounded-xl" />
+          <span className="text-[10px] uppercase font-mono text-slate-400 tracking-widest">
+            № {ticket.ticketNumber}
+          </span>
+        </>
+      ) : (
+        <span className="text-xs text-slate-400">Не удалось загрузить QR-код</span>
+      )}
+    </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-2 min-h-[220px]">
-                  {ticketLoading ? (
-                    <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-                  ) : ticket ? (
-                    <>
-                      <img src={ticket.qrCodeDataUrl} alt="QR билета" className="w-40 h-40" />
-                      <span className="text-[10px] uppercase font-mono text-slate-400 tracking-widest">
-                        {ticket.ticketNumber}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-xs text-slate-400">Не удалось загрузить QR-код</span>
-                  )}
-                </div>
+    {/* Крупный, читаемый блок с данными — то, что видит регистратор глазами, без сканирования */}
+    <div className="rounded-2xl bg-violet-50 dark:bg-slate-800/60 p-4 space-y-2.5 text-left">
+      <div>
+        <div className="text-[10px] uppercase tracking-wider text-purple-500 font-bold">Участник</div>
+        <div className="text-base font-bold text-slate-900 dark:text-white">
+          {ticket?.holder || user?.firstName || user?.phone || 'Участник'}
+        </div>
+      </div>
+      <div>
+        <div className="text-[10px] uppercase tracking-wider text-purple-500 font-bold">Мероприятие</div>
+        <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{event.title}</div>
+      </div>
+      <div className="flex items-start gap-2">
+        <Calendar className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+        <span className="text-xs text-slate-600 dark:text-slate-300">{formatDate(event.startDate)}</span>
+      </div>
+      <div className="flex items-start gap-2">
+        <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+        <span className="text-xs text-slate-600 dark:text-slate-300">{event.location}</span>
+      </div>
+    </div>
 
-                <div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200">
-                    {ticket?.holder || user?.firstName || user?.phone || 'Участник'}
-                  </div>
-                  <div className="text-xs text-slate-400">{t.eventDetails?.ticketConfirmed || 'Билет подтвержден'}</div>
-                </div>
-
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading || !ticket}
-                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-purple-500/20"
-                >
-                  {downloading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  {downloading
-                    ? 'Готовим PDF…'
-                    : t.eventDetails?.downloadTicket || 'Скачать билет (PDF)'}
-                </button>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
-                <h4 className="font-bold text-slate-900 dark:text-white">
-                  {t.eventDetails?.ticketTitle || 'Электронный билет'}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  {t.eventDetails?.ticketInstruction || 'Зарегистрируйтесь, чтобы получить персональный билет с QR-кодом.'}
-                </p>
-              </div>
-            )}
+    <button
+      onClick={handleDownload}
+      disabled={downloading || !ticket}
+      className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-purple-500/20"
+    >
+      {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+      {downloading ? 'Готовим PDF…' : t.eventDetails?.downloadTicket || 'Скачать билет (PDF)'}
+    </button>
+  </div>
+) : (
+  <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
+    <h4 className="font-bold text-slate-900 dark:text-white">
+      {t.eventDetails?.ticketTitle || 'Электронный билет'}
+    </h4>
+    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+      {t.eventDetails?.ticketInstruction || 'Зарегистрируйтесь, чтобы получить персональный билет с QR-кодом.'}
+    </p>
+  </div>
+)}
           </div>
         </div>
       </main>
