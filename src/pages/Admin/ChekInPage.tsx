@@ -10,32 +10,71 @@ interface CheckInResult {
   eventTitle?: string;
 }
 
+interface EventOption {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate?: string;
+}
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
 export const CheckInPage: React.FC = () => {
   const [mode, setMode] = useState<'manual' | 'scan'>('manual');
   const [ticketNumber, setTicketNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckInResult | null>(null);
 
+  const [todaysEvents, setTodaysEvents] = useState<EventOption[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [eventsLoading, setEventsLoading] = useState(true);
+
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const scanningRef = useRef(false); // защита от повторного срабатывания на одном кадре
+  const scanningRef = useRef(false);
+
+  // Подтягиваем события, которые идут именно сегодня
+  useEffect(() => {
+    api
+      .get('/events')
+      .then(({ data }: { data: EventOption[] }) => {
+        const now = new Date();
+        const today = data.filter((e) => {
+          const start = startOfDay(new Date(e.startDate));
+          const end = e.endDate ? endOfDay(new Date(e.endDate)) : endOfDay(new Date(e.startDate));
+          return now >= start && now <= end;
+        });
+        setTodaysEvents(today);
+        if (today.length === 1) {
+          setSelectedEventId(today[0].id); // единственное событие сегодня — выбираем сразу
+        }
+      })
+      .catch(() => setTodaysEvents([]))
+      .finally(() => setEventsLoading(false));
+  }, []);
 
   const doCheckIn = async (rawTicket: string) => {
-    // QR кодирует JSON {"ticket": "...", "eventId": "..."} — вытаскиваем ticketNumber,
-    // но если ввели вручную — это просто голая строка номера
+    if (!selectedEventId) {
+      setResult({ success: false, message: 'Сначала выберите мероприятие' });
+      return;
+    }
+
     let ticket = rawTicket.trim();
     try {
       const parsed = JSON.parse(rawTicket);
       if (parsed.ticket) ticket = parsed.ticket;
     } catch {
-      // не JSON — значит это уже сам номер билета, ок
+      // не JSON — уже сам номер билета
     }
-
     if (!ticket) return;
 
     setLoading(true);
     setResult(null);
     try {
-      const { data } = await api.post('/registrations/check-in', { ticketNumber: ticket });
+      const { data } = await api.post('/registrations/check-in', {
+        ticketNumber: ticket,
+        eventId: selectedEventId,
+      });
       setResult({
         success: true,
         message: 'Вход подтверждён',
@@ -58,9 +97,8 @@ export const CheckInPage: React.FC = () => {
     doCheckIn(ticketNumber);
   };
 
-  // Камера-сканер
   useEffect(() => {
-    if (mode !== 'scan') {
+    if (mode !== 'scan' || !selectedEventId) {
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
         scannerRef.current = null;
@@ -71,36 +109,64 @@ export const CheckInPage: React.FC = () => {
     const scanner = new Html5Qrcode('qr-reader');
     scannerRef.current = scanner;
 
-scanner
-  .start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 260, height: 260 } },
-    (decodedText) => {
-      if (scanningRef.current) return;
-      scanningRef.current = true;
-      scanner.pause(true); // явно останавливаем сканирование кадров, а не только флагом
-
-      doCheckIn(decodedText).finally(() => {
-        setTimeout(() => {
-          scanningRef.current = false;
-          scanner.resume(); // возобновляем только когда предыдущий запрос завершён
-        }, 1500);
+    scanner
+      .start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 260, height: 260 } },
+        (decodedText) => {
+          if (scanningRef.current) return;
+          scanningRef.current = true;
+          scanner.pause(true);
+          doCheckIn(decodedText).finally(() => {
+            setTimeout(() => {
+              scanningRef.current = false;
+              scanner.resume();
+            }, 1500);
+          });
+        },
+        () => {},
+      )
+      .catch(() => {
+        setResult({ success: false, message: 'Не удалось получить доступ к камере' });
+        setMode('manual');
       });
-    },
-    () => {},
-  )
 
     return () => {
       scanner.stop().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  }, [mode, selectedEventId]);
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Check-in</h1>
         <p className="text-sm text-slate-500">Отметка входа участников по билету</p>
+      </div>
+
+      {/* Выбор события */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Мероприятие</label>
+        {eventsLoading ? (
+          <div className="text-sm text-slate-400">Загрузка…</div>
+        ) : todaysEvents.length === 0 ? (
+          <div className="text-sm text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+            Сегодня нет запланированных мероприятий
+          </div>
+        ) : (
+          <select
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+            className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
+          >
+            {todaysEvents.length > 1 && <option value="">Выберите мероприятие…</option>}
+            {todaysEvents.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.title}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="flex bg-slate-100 p-1 rounded-xl">
@@ -132,12 +198,13 @@ scanner
               value={ticketNumber}
               onChange={(e) => setTicketNumber(e.target.value)}
               placeholder="SW-TCK-A1B2C3"
-              className="w-full p-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-purple-500"
+              disabled={!selectedEventId}
+              className="w-full p-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-purple-500 disabled:bg-slate-50"
             />
           </div>
           <button
             type="submit"
-            disabled={loading || !ticketNumber.trim()}
+            disabled={loading || !ticketNumber.trim() || !selectedEventId}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -146,8 +213,14 @@ scanner
         </form>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-          <div id="qr-reader" className="rounded-xl overflow-hidden" />
-          <p className="text-xs text-slate-400 text-center mt-3">Наведите камеру на QR-код билета</p>
+          {!selectedEventId ? (
+            <p className="text-sm text-slate-400 text-center py-8">Сначала выберите мероприятие выше</p>
+          ) : (
+            <>
+              <div id="qr-reader" className="rounded-xl overflow-hidden" />
+              <p className="text-xs text-slate-400 text-center mt-3">Наведите камеру на QR-код билета</p>
+            </>
+          )}
         </div>
       )}
 

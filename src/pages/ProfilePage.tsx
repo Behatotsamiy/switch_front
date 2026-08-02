@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, Calendar, CheckCircle2, Save, MapPin } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle2, Save} from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { user , loading} = useAuth();
+  const { user , } = useAuth();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -11,7 +11,7 @@ export const ProfilePage: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [saved, setSaved] = useState(false);
 
-  const [enrolledSessions, setEnrolledSessions] = useState<number[]>([1]);
+  // const [, setEnrolledSessions] = useState<number[]>([1]);
 
 
 
@@ -30,11 +30,11 @@ export const ProfilePage: React.FC = () => {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const toggleEnroll = (id: number) => {
-    setEnrolledSessions((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
+  // const toggleEnroll = (id: number) => {
+  //   setEnrolledSessions((prev) =>
+  //     prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+  //   );
+  // };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
