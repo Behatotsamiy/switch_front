@@ -18,13 +18,14 @@ export const EventsPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '', // добавили — обязательное поле на бэкенде
-    location: '',
-    startDate: '',
-    maxParticipants: 50,
-  });
+const [form, setForm] = useState({
+  title: '',
+  description: '',
+  location: '',
+  startDate: '',
+  maxParticipants: 50,
+  price: '', // добавили — строка, пустая = бесплатное событие
+});
 
   const fetchEvents = async () => {
     try {
@@ -42,27 +43,26 @@ export const EventsPage: React.FC = () => {
     fetchEvents();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    try {
-      setSubmitting(true);
-      await api.post('/events', {
-        ...form,
-        // datetime-local отдаёт "2026-08-15T14:00" — приводим к полноценному ISO с таймзоной,
-        // как ожидает @IsDateString() на бэкенде
-        startDate: new Date(form.startDate).toISOString(),
-      });
-      setIsModalOpen(false);
-      setForm({ title: '', description: '', location: '', startDate: '', maxParticipants: 50 });
-      fetchEvents();
-    } catch (err: any) {
-      const message = err.response?.data?.message;
-      setFormError(Array.isArray(message) ? message.join(', ') : message || 'Ошибка при создании события');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+const handleCreate = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setFormError(null);
+  try {
+    setSubmitting(true);
+    await api.post('/events', {
+      ...form,
+      startDate: new Date(form.startDate).toISOString(),
+      price: form.price ? Number(form.price) : undefined, // пусто — не отправляем поле вообще
+    });
+    setIsModalOpen(false);
+    setForm({ title: '', description: '', location: '', startDate: '', maxParticipants: 50, price: '' });
+    fetchEvents();
+  } catch (err: any) {
+    const message = err.response?.data?.message;
+    setFormError(Array.isArray(message) ? message.join(', ') : message || 'Ошибка при создании события');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!confirm('Удалить мероприятие?')) return;
@@ -178,29 +178,44 @@ export const EventsPage: React.FC = () => {
                 />
               </div>
 
+            
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Макс. мест</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={form.maxParticipants}
-                    onChange={(e) => setForm({ ...form, maxParticipants: +e.target.value })}
-                    className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Дата</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={form.startDate}
-                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
+  <div>
+    <label className="block text-xs font-semibold text-slate-600 mb-1">Макс. мест</label>
+    <input
+      type="number"
+      required
+      min={1}
+      value={form.maxParticipants}
+      onChange={(e) => setForm({ ...form, maxParticipants: +e.target.value })}
+      className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
+    />
+  </div>
+  <div>
+    <label className="block text-xs font-semibold text-slate-600 mb-1">Дата</label>
+    <input
+      type="datetime-local"
+      required
+      value={form.startDate}
+      onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+      className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
+    />
+  </div>
+</div>
+
+<div>
+  <label className="block text-xs font-semibold text-slate-600 mb-1">
+    Цена (UZS) — оставьте пустым для бесплатного события
+  </label>
+  <input
+    type="number"
+    min={0}
+    value={form.price}
+    onChange={(e) => setForm({ ...form, price: e.target.value })}
+    placeholder="Например, 15000"
+    className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500"
+  />
+</div>
 
               <div className="flex gap-3 pt-2">
                 <button
