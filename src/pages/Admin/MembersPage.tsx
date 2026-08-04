@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { api } from '../../api/axios';
 
 interface User {
@@ -15,6 +16,7 @@ export const MembersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchUsers = () => {
     api
@@ -35,6 +37,19 @@ export const MembersPage: React.FC = () => {
       alert(err.response?.data?.message || 'Не удалось изменить роль');
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleDelete = async (id: string, fullName: string) => {
+    if (!confirm(`Удалить пользователя ${fullName}? Это действие необратимо.`)) return;
+    try {
+      setDeletingId(id);
+      await api.delete(`/users/${id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Не удалось удалить пользователя');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -59,6 +74,7 @@ export const MembersPage: React.FC = () => {
                 <th className="p-4">Телефон</th>
                 <th className="p-4">Роль</th>
                 <th className="p-4">Дата регистрации</th>
+                <th className="p-4 text-right">Действие</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -88,6 +104,16 @@ export const MembersPage: React.FC = () => {
                     </select>
                   </td>
                   <td className="p-4 text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => handleDelete(u.id, `${u.firstName} ${u.lastName}`)}
+                      disabled={deletingId === u.id}
+                      title="Удалить пользователя"
+                      className="p-2 text-slate-400 hover:text-red-600 transition disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

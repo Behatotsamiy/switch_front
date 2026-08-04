@@ -15,6 +15,7 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({ children
   const menuItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
     { label: 'Events', icon: Calendar, path: '/admin/events' },
+    { label: 'Payments', icon: FileText, path: '/admin/payments' },
     { label: 'Check-in', icon: CheckCircle, path: '/admin/checkin' },
     { label: 'Members', icon: Users, path: '/admin/members' },
     { label: 'Projects', icon: Briefcase, path: '/admin/projects' },

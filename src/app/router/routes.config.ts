@@ -13,6 +13,7 @@ import { CertificatesPage } from "../../pages/Admin/CertificatesPage";
 import { ReportsPage } from "../../pages/Admin/ReportsPage";
 import { SettingsPage } from "../../pages/Admin/SettingsPage";
 import { CheckInPage } from "../../pages/Admin/ChekInPage";
+import { PaymentsPage } from "../../pages/Admin/PaymentsPage";
 
 export interface RouteConfig {
   path: string;
@@ -100,6 +101,13 @@ export const routes: RouteConfig[] = [
       {
     path: "/admin/checkin", // <--- DashboardPage ТОЛЬКО ДЛЯ АДМИНА
     component: CheckInPage,
+    layout: AdminLayout,
+    isPrivate: true,
+    roles: ["ADMIN"],
+  },
+       {
+    path: "/admin/payments", // <--- DashboardPage ТОЛЬКО ДЛЯ АДМИНА
+    component: PaymentsPage,
     layout: AdminLayout,
     isPrivate: true,
     roles: ["ADMIN"],
