@@ -27,14 +27,11 @@ const handleLogout = async () => {
     ? [
         { href: '/', label: t.nav?.home || 'Главная' },
         { href: '#events', label: t.nav?.events || 'Мероприятия' },
-        { href: '#projects', label: t.nav?.projects || 'Проекты' },
         { href: '/profile', label: t.nav?.profile || 'Личный кабинет' },
       ]
     : [
         { href: '#events', label: t.nav?.events || 'Мероприятия' },
         { href: '#community', label: t.nav?.community || 'Сообщество' },
-        { href: '#projects', label: t.nav?.projects || 'Проекты' },
-        { href: '#mentors', label: t.nav?.mentors || 'Менторы' },
         { href: '#about', label: t.nav?.about || 'О нас' },
       ];
 
