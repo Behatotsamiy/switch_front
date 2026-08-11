@@ -1,37 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import {
-  Calendar,
-  MapPin,
-  Download,
-  ArrowLeft,
-  CheckCircle2,
-  Sparkles,
-  Share2,
-  AlertCircle,
-  Loader2,
+import { useParams, Link } from 'react-router-dom';
+import { 
+  Calendar, 
+  MapPin, 
+  ArrowLeft, 
+  Clock, 
+  Ticket, 
+  Share2, 
+  ExternalLink,
+  Loader2 
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useLang } from '../context/LanguageContext';
-import { Header } from '../components/Header';
-import { PaymentPendingBlock, PaymentRejectedBlock } from '../components/PaymentBlocks';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-interface Speaker {
-  id: string;
-  firstName: string;
-  lastName: string;
-  bio?: string;
-  photo?: string;
-  position?: string;
-}
-
-interface Registration {
-  id: string;
-  userId: string;
-  status: 'ACTIVE' | 'CANCELLED';
-}
+import { api } from '../api/axios';
 
 interface EventData {
   id: string;
@@ -39,443 +18,166 @@ interface EventData {
   description: string;
   location: string;
   startDate: string;
-  endDate?: string;
-  coverImage?: string;
-  maxParticipants?: number;
-  status: 'UPCOMING' | 'ONGOING' | 'FINISHED' | 'CANCELLED';
-  speakers?: Speaker[];
-  registrations?: Registration[];
-  createdAt: string;
+  imageUrl?: string;
+  price?: string;
+  googleFormUrl?: string; // Укажите вашу ссылку на Google Форму
 }
 
-interface TicketData {
-  ticketNumber: string;
-  qrCodeDataUrl: string | null; // теперь может быть null, пока оплата не подтверждена
-  holder: string;
-  paymentStatus: 'NOT_REQUIRED' | 'PENDING' | 'PAID' | 'REJECTED';
-  orderNumber: string | null;
-  paymentRejectionReason: string | null;
-  event: { id: string; title: string; startDate: string; location: string; price: number | null };
-}
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const { t } = useLang();
-
   const [event, setEvent] = useState<EventData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [registrationId, setRegistrationId] = useState<string | null>(null);
-  const [registering, setRegistering] = useState<boolean>(false);
-  const [registerError, setRegisterError] = useState<string | null>(null);
-
-  const [ticket, setTicket] = useState<TicketData | null>(null);
-  const [ticketLoading, setTicketLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-
-  const isRegistered = !!registrationId;
-
-  const authHeaders = () => ({
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
-  });
-
-  const loadEvent = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/events/${id}`);
-      if (!response.ok) {
-        throw new Error(t.eventDetails?.notFound || 'Мероприятие не найдено');
-      }
-      const data: EventData = await response.json();
-      setEvent(data);
-
-      if (user && data.registrations) {
-        const ownReg = data.registrations.find(
-          (reg) => reg.userId === user.id && reg.status === 'ACTIVE',
-        );
-        setRegistrationId(ownReg?.id ?? null);
-      } else {
-        setRegistrationId(null);
-      }
-    } catch (err: any) {
-      setError(err.message || t.eventDetails?.errorMsg || 'Ошибка при загрузке данных');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!id) {
-      setError('Некорректная ссылка на событие');
-      setLoading(false);
-      return;
-    }
-    loadEvent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user]);
-
-
-
-  // Как только знаем registrationId — подтягиваем сам билет с QR-кодом
-  useEffect(() => {
-    if (!registrationId) {
-      setTicket(null);
-      return;
-    }
-    setTicketLoading(true);
-    fetch(`${API_URL}/registrations/${registrationId}/ticket`, { headers: authHeaders() })
-      .then((res) => {
-        if (!res.ok) throw new Error('Не удалось загрузить билет');
-        return res.json();
-      })
-      .then(setTicket)
-      .catch(() => setTicket(null))
-      .finally(() => setTicketLoading(false));
-  }, [registrationId]);
-
-    const loadTicket = () => {
-  if (!registrationId) {
-    setTicket(null);
-    return;
-  }
-  setTicketLoading(true);
-  fetch(`${API_URL}/registrations/${registrationId}/ticket`, { headers: authHeaders() })
-    .then((res) => {
-      if (!res.ok) throw new Error('Не удалось загрузить билет');
-      return res.json();
-    })
-    .then(setTicket)
-    .catch(() => setTicket(null))
-    .finally(() => setTicketLoading(false));
-};
-
-useEffect(loadTicket, [registrationId]);
-
-  const handleRegister = async () => {
-    if (!isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
     if (!id) return;
+    setLoading(true);
+    api.get<EventData>(`/events/${id}`)
+      .then((res) => setEvent(res.data))
+      .catch((err) => setError(err.response?.data?.message || 'Событие не найдено'))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-    try {
-      setRegistering(true);
-      setRegisterError(null);
-
-      const response = await fetch(`${API_URL}/registrations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ eventId: id }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || t.eventDetails?.regFailed || 'Не удалось зарегистрироваться');
-      }
-
-      // после регистрации бэк возвращает саму Registration — сразу знаем её id,
-      // не дожидаясь перезагрузки события
-      setRegistrationId(data.id);
-      await loadEvent();
-    } catch (err: any) {
-      setRegisterError(err.message || t.eventDetails?.regError || 'Ошибка регистрации');
-    } finally {
-      setRegistering(false);
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: event?.title, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Ссылка скопирована!');
     }
-  };
-
-  const handleDownload = async () => {
-    if (!registrationId) return;
-    try {
-      setDownloading(true);
-      const response = await fetch(`${API_URL}/registrations/${registrationId}/ticket/download`, {
-        headers: authHeaders(),
-      });
-      if (!response.ok) throw new Error('Не удалось скачать билет');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'switch-ticket.pdf';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      alert(err.message || 'Не удалось скачать билет');
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString(undefined, {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
+      <div className="min-h-[60vh] flex items-center justify-center text-slate-400 gap-2">
+        <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+        <span>Загрузка события...</span>
       </div>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center items-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          {t.eventDetails?.notFound || 'Мероприятие не найдено'}
-        </h2>
-        <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
-        <Link to="/" className="px-6 py-2.5 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
-          {t.eventDetails?.goHome || 'Вернуться на главную'}
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-4">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Событие не найдено</h2>
+        <p className="text-slate-500 mb-6">{error || 'Возможно, оно было удалено'}</p>
+        <Link
+          to="/"
+          className="px-5 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
       </div>
     );
   }
 
-  const activeRegistrations = event.registrations?.filter((r) => r.status === 'ACTIVE') ?? [];
-  const registeredCount = activeRegistrations.length;
-  const seatsLeft = event.maxParticipants ? event.maxParticipants - registeredCount : null;
-  
+  const eventDate = new Date(event.startDate);
+  // Дефолтная ссылка на Google Forms, если для события не задана персональная
+  const formLink = event.googleFormUrl || 'https://t.me/switchuzbekistan';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
-      <Header />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition"
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* Кнопка Назад и Поделиться */}
+      <div className="flex justify-between items-center">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition"
         >
-          <ArrowLeft className="w-4 h-4" /> {t.eventDetails?.backBtn || 'Назад к мероприятиям'}
+          <ArrowLeft className="w-4 h-4" /> Все события
+        </Link>
+
+        <button
+          onClick={handleShare}
+          className="p-2.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition"
+          title="Поделиться"
+        >
+          <Share2 className="w-5 h-5" />
         </button>
+      </div>
 
-        <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/50 dark:border-slate-800 bg-slate-900">
-          {event.coverImage ? (
-            <img
-              src={event.coverImage}
-              alt={event.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-40"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 opacity-90" />
-          )}
+      {/* Главная обложка */}
+      <div className="relative rounded-3xl overflow-hidden bg-slate-900 aspect-[21/9] shadow-lg">
+        {event.imageUrl ? (
+          <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-600 font-medium">
+            Нет изображения
+          </div>
+        )}
+      </div>
 
-          <div className="relative z-10 p-6 sm:p-10 md:p-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 backdrop-blur-[2px]">
-            <div className="space-y-4 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
-                    event.status === 'UPCOMING'
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30'
-                      : event.status === 'ONGOING'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
-                        : 'bg-slate-500/20 text-slate-300 border border-slate-400/30'
-                  }`}
-                >
-                  {event.status}
-                </span>
+      {/* Основная информация */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Описание события */}
+        <div className="md:col-span-2 space-y-6">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">{event.title}</h1>
 
-                {seatsLeft !== null && (
-                  <span className="text-xs font-medium text-slate-300 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
-                    {t.eventDetails?.seatsLeft || 'Осталось мест:'} <strong className="text-white">{seatsLeft}</strong>
-                  </span>
-                )}
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight">
-                {event.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-6 text-slate-200 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-purple-400" />
-                  <span>{formatDate(event.startDate)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-purple-400" />
-                  <span>{event.location}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="w-full lg:w-72 bg-white/10 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800 p-6 rounded-2xl text-center space-y-4 shadow-2xl shrink-0">
-              <div className="text-xs text-slate-300 uppercase tracking-wider font-semibold">
-                {t.eventDetails?.participants || 'Участников'}
-              </div>
-              <div className="text-3xl font-extrabold text-white">
-                {registeredCount} {event.maxParticipants ? `/ ${event.maxParticipants}` : ''}
-              </div>
-
-              {registerError && (
-                <div className="text-xs text-red-300 bg-red-500/10 border border-red-400/30 rounded-xl px-3 py-2">
-                  {registerError}
-                </div>
-              )}
-
-              <button
-                onClick={handleRegister}
-                disabled={registering || isRegistered || (seatsLeft !== null && seatsLeft <= 0)}
-                className={`w-full py-3 px-4 rounded-xl font-bold text-sm shadow-lg transition active:scale-[0.98] ${
-                  isRegistered
-                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white cursor-default'
-                    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/30'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {registering
-                  ? t.eventDetails?.loading || 'Загрузка...'
-                  : isRegistered
-                    ? t.eventDetails?.registeredBadge || 'Вы зарегистрированы ✓'
-                    : seatsLeft !== null && seatsLeft <= 0
-                      ? t.eventDetails?.seatsLeft || 'Мест нет'
-                      : t.eventDetails?.registerBtn || 'Зарегистрироваться'}
-              </button>
-
-              <button
-                onClick={() => navigator.clipboard.writeText(window.location.href)}
-                className="w-full py-2 text-xs text-slate-300 hover:text-white flex items-center justify-center gap-1 transition"
-              >
-                <Share2 className="w-3.5 h-3.5" /> {t.eventDetails?.shareBtn || 'Поделиться ссылкой'}
-              </button>
-            </div>
+          <div className="prose prose-slate max-w-none">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">О мероприятии</h3>
+            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{event.description}</p>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm space-y-4">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                {t.eventDetails?.aboutTitle || 'О мероприятии'}
-              </h3>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line text-sm sm:text-base">
-                {event.description}
-              </p>
-            </div>
-
-            {event.speakers && event.speakers.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {t.eventDetails?.speakersTitle || 'Спикеры'}
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {event.speakers.map((speaker) => {
-                    const fullName = `${speaker.firstName} ${speaker.lastName}`;
-                    return (
-                      <div
-                        key={speaker.id}
-                        className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800"
-                      >
-                        <img
-                          src={speaker.photo || `https://api.dicebear.com/7.x/bottts/svg?seed=${fullName}`}
-                          alt={fullName}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-purple-500/30"
-                        />
-                        <div>
-                          <h4 className="font-bold text-slate-900 dark:text-white text-sm">{fullName}</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {speaker.position || speaker.bio || t.eventDetails?.speakerRole || 'Спикер'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+        {/* Карточка покупки билета */}
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 sticky top-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Дата</div>
+                  <div className="text-sm font-semibold">{eventDate.toLocaleDateString()}</div>
                 </div>
               </div>
-            )}
-          </div>
 
-     <div className="sticky top-24">
-  {isRegistered ? (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border-2 border-purple-500/40 text-center space-y-5 shadow-xl relative overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none" />
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Время</div>
+                  <div className="text-sm font-semibold">
+                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
 
-      {ticketLoading ? (
-        <div className="py-10 flex justify-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-        </div>
-      ) : !ticket ? (
-        <span className="text-xs text-slate-400">Не удалось загрузить билет</span>
-      ) : ticket.paymentStatus === 'PENDING' ? (
-        <PaymentPendingBlock ticket={ticket} registrationId={registrationId!} onUploaded={loadTicket} />
-      ) : ticket.paymentStatus === 'REJECTED' ? (
-        <PaymentRejectedBlock ticket={ticket} registrationId={registrationId!} onUploaded={loadTicket} />
-      ) : (
-        <>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-semibold">
-            <CheckCircle2 className="w-4 h-4" /> {t.eventDetails?.yourTicket || 'Ваш электронный билет'}
-          </div>
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Локация</div>
+                  <div className="text-sm font-semibold">{event.location}</div>
+                </div>
+              </div>
 
-          <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3 min-h-[220px]">
-            {ticket.qrCodeDataUrl ? (
-              <>
-                <img src={ticket.qrCodeDataUrl} alt="QR билета" className="w-44 h-44 rounded-xl" />
-                <span className="text-[10px] uppercase font-mono text-slate-400 tracking-widest">
-                  № {ticket.ticketNumber}
-                </span>
-              </>
-            ) : (
-              <span className="text-xs text-slate-400">QR-код недоступен</span>
-            )}
-          </div>
-
-          <div className="rounded-2xl bg-violet-50 dark:bg-slate-800/60 p-4 space-y-2.5 text-left">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-purple-500 font-bold">Участник</div>
-              <div className="text-base font-bold text-slate-900 dark:text-white">
-                {ticket.holder || user?.firstName || user?.phone || 'Участник'}
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                  <Ticket className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Стоимость</div>
+                  <div className="text-sm font-bold text-purple-600">{event.price || 'Бесплатно'}</div>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-purple-500 font-bold">Мероприятие</div>
-              <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{event.title}</div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Calendar className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
-              <span className="text-xs text-slate-600 dark:text-slate-300">{formatDate(event.startDate)}</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
-              <span className="text-xs text-slate-600 dark:text-slate-300">{event.location}</span>
-            </div>
-          </div>
 
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-purple-500/20"
-          >
-            {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            {downloading ? 'Готовим PDF…' : t.eventDetails?.downloadTicket || 'Скачать билет (PDF)'}
-          </button>
-        </>
-      )}
-    </div>
-  ) : (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
-      <h4 className="font-bold text-slate-900 dark:text-white">
-        {t.eventDetails?.ticketTitle || 'Электронный билет'}
-      </h4>
-      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-        {t.eventDetails?.ticketInstruction || 'Зарегистрируйтесь, чтобы получить персональный билет с QR-кодом.'}
-      </p>
-    </div>
-  )}
-</div>
+            {/* ПРЯМАЯ ССЫЛКА НА GOOGLE FORMS */}
+            <a
+              href={formLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg shadow-purple-600/25 transition flex items-center justify-center gap-2"
+            >
+              Купить билет
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

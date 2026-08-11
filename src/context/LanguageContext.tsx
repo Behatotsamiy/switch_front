@@ -17,7 +17,7 @@ export const translations = {
     },
     landing: {
       heroTitle1: "Расширяем возможности девушек.",
-      heroTitle2: "Строим будущее.",
+      heroTitle2: "Не выбирай карьеру. Сначала испытай.",
       heroDesc:
         "SWITCH — это сообщество для девушек, которые хотят учиться, создавать и запускать стартап-проекты.",
       joinBtn: "Присоединиться",
@@ -97,7 +97,7 @@ export const translations = {
     },
     landing: {
       heroTitle1: "Qizlar imkoniyatlarini kengaytiramiz.",
-      heroTitle2: "Kelajakni barpo etamiz.",
+      heroTitle2: "Kelajagingni tanlamang. Uni sinab ko'ring.",
       heroDesc:
         "SWITCH — bu o'rganish, yaratish va startap loyihalarni yo'lga qo'yishni xohlaydigan qizlar hamjamiyati.",
       joinBtn: "Hamjamiyatga qo'shilish",
@@ -176,7 +176,7 @@ export const translations = {
       home: "Home"
     },
     landing: {
-      heroTitle1: "Empowering Girls.",
+      heroTitle1: "Don't Choose Your Career. Experience It First.",
       heroTitle2: "Building Futures.",
       heroDesc:
         "SWITCH is a community for girls who want to learn, build, and launch startup projects.",
