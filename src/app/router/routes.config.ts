@@ -9,6 +9,8 @@ import { AuthPage } from '../../pages/AuthPage';
 
 export interface RouteConfig {
   path: string;
+  isPrivate?: boolean;
+  roles?: string[];
   component: React.ComponentType;
   layout?: React.ComponentType<{ children?: React.ReactNode }>;
 }
@@ -26,6 +28,8 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/admin',
+    isPrivate: true,
+    roles: ['admin'],
     component: AdminEventsPage,
     layout: AdminLayout,
   },

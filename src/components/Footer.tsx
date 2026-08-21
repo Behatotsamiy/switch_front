@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Send, Camera, Play, } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Camera, Play, Link2 } from 'lucide-react';
 
 const quickLinks = [
   { label: 'Мероприятия', to: '/events' },
@@ -20,7 +20,7 @@ const socials = [
   { icon: Send, label: 'Telegram', href: 'https://t.me/switch_community', color: 'hover:bg-[#229ED9]' },
   { icon: Camera, label: 'Instagram', href: 'https://instagram.com/switch.community', color: 'hover:bg-gradient-to-br hover:from-[#f09433] hover:to-[#bc1888]' },
   { icon: Play, label: 'YouTube', href: 'https://youtube.com/@switchcommunity', color: 'hover:bg-[#FF0000]' },
-  { icon: Link, label: 'LinkedIn', href: 'https://linkedin.com/company/switch-community', color: 'hover:bg-[#0A66C2]' },
+  { icon: Link2, label: 'LinkedIn', href: 'https://linkedin.com/company/switch-community', color: 'hover:bg-[#0A66C2]' },
 ];
 
 export const Footer: React.FC = () => {
