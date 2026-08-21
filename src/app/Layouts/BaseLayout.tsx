@@ -1,4 +1,6 @@
 import React from 'react';
+import { MissionSection } from '../../components/MissionSection';
+import { Footer } from '../../components/Footer';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -10,11 +12,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
 
       {/* Отображаем переданную страницу через children */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">{children}
 
-      <footer className="bg-slate-900 text-slate-400 py-8 text-center text-xs">
-        © 2026 SWITCH Community. All rights reserved.
-      </footer>
+
+      </main>
+  
     </div>
   );
 };
