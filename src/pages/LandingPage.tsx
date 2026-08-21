@@ -91,8 +91,8 @@ export const LandingPage: React.FC = () => {
           playsInline
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
         >
-          <source src="../../public/IMG_6477.mp4" type="video/mp4" />
-          <source src="../../public/IMG_6477.MOV" type="video/quicktime" />
+          <source src="/IMG_6477.mp4" type="video/mp4" />
+          <source src="/IMG_6477.MOV" type="video/quicktime" />
         </video>
         <div className="absolute inset-0 bg-black/55 z-10 pointer-events-none" />
 
