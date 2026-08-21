@@ -104,13 +104,12 @@ export const LandingPage: React.FC = () => {
           </h1>
 
           <div className="inline-block bg-white/10 backdrop-blur-md border border-white/15 px-6 py-3.5 md:px-10 md:py-4 rounded-full text-sm md:text-lg text-slate-200 font-normal shadow-lg">
-            {t.landing?.heroSubtitle || "Don't Choose Your Future. Experience It First."}
+            {t.landing?.heroTitle2 || "Don't Choose Your Future. Experience It First."}
           </div>
         </div>
 
         <div className="relative z-20 max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-8 pt-8">
           <blockquote className="max-w-sm text-slate-300 text-sm leading-relaxed italic border-l-2 border-purple-400/50 pl-4">
-            {t.landing?.heroQuote || 'Empowering girls today builds the professionals of tomorrow.'}
             <footer className="mt-2 text-[11px] not-italic uppercase tracking-widest text-slate-400">
               — SWITCH COMMUNITY
             </footer>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { MissionSection } from '../../components/MissionSection';
-import { Footer } from '../../components/Footer';
+
 
 interface MainLayoutProps {
   children?: React.ReactNode;
