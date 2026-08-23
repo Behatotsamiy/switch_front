@@ -1,25 +1,28 @@
 import React from 'react';
 import { Building2, GraduationCap, HandCoins, ArrowRight } from 'lucide-react';
-
-const partnerTypes = [
-  {
-    icon: Building2,
-    title: 'Компаниям',
-    desc: 'Найдите будущих сотрудниц среди мотивированных участниц, спонсируйте сессию или станьте площадкой для стажировки.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Учебным центрам',
-    desc: 'Проведите совместный воркшоп или интегрируйте SWITCH в программу профориентации для ваших студенток.',
-  },
-  {
-    icon: HandCoins,
-    title: 'Менторам и экспертам',
-    desc: 'Поделитесь опытом на одной из сессий — не нужно готовить курс, просто расскажите свою историю в индустрии.',
-  },
-];
+import { useLang } from '../context/LanguageContext';
 
 export const PartnerSection: React.FC = () => {
+  const { t } = useLang();
+
+  const partnerTypes = [
+    {
+      icon: Building2,
+      title: t.partner?.company || '',
+      desc: t.partner?.companyDesc || '',
+    },
+    {
+      icon: GraduationCap,
+      title: t.partner?.center || '',
+      desc: t.partner?.centerDesc || '',
+    }, 
+    {
+      icon: HandCoins,
+      title: t.partner?.mentor || '',
+      desc: t.partner?.mentorDesc || '',
+    },
+  ];
+
   return (
     <section id="partner" className="py-20 md:py-28 bg-gradient-to-br from-purple-700 via-purple-600 to-fuchsia-600 relative overflow-hidden">
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl pointer-events-none" />
@@ -31,7 +34,7 @@ export const PartnerSection: React.FC = () => {
             Partner With Us
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold tracking-tight text-white leading-tight">
-            Постройте будущее вместе с нами
+            {t.partner?.title || 'Станьте частью SWITCH'}
           </h2>
           <p className="mt-4 text-purple-100 text-sm md:text-base leading-relaxed">
             SWITCH растёт благодаря компаниям, менторам и учебным центрам, которые верят в то же, что и мы.
@@ -54,12 +57,15 @@ export const PartnerSection: React.FC = () => {
         </div>
 
         <div className="text-center">
-          
-            href="mailto:partners@switch-community.uz"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-700 font-bold rounded-full shadow-2xl hover:bg-purple-50 transition active:scale-95"
-          
-            Стать партнёром <ArrowRight className="w-4 h-4" />
-         
+          <a
+            href="https://forms.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-700 font-bold rounded-full shadow-2xl hover:bg-purple-50 transition active:scale-95 cursor-pointer"
+          >
+            <span>Стать партнёром</span>
+            <ArrowRight className="w-4 h-4" />
+          </a>
         </div>
       </div>
     </section>
