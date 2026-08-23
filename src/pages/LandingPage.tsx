@@ -97,14 +97,14 @@ export const LandingPage: React.FC = () => {
         <div className="absolute inset-0 bg-black/55 z-10 pointer-events-none" />
 
         <div className="relative z-20 max-w-6xl mx-auto w-full text-center my-auto pt-10 space-y-8">
-          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight text-white uppercase leading-[1.05]">
+          <h1 className="text-6xl sm:text-6xl md:text-6xl lg:text-6xl font-serif font-bold tracking-tight text-white uppercase leading-[1.05]">
             {t.landing?.heroTitle1 || 'Explore Your'} <br />
-            {t.landing?.heroTitle2 || 'Future'}{' '}
-            <span className="text-purple-400">{t.landing?.heroTitle3 || 'Career.'}</span>
+            {t.landing?.heroTitle2 || 'Career'}{' '}
+            <span className="text-purple-400">{t.landing?.heroTitle3 || 'Future.'}</span>
           </h1>
 
           <div className="inline-block bg-white/10 backdrop-blur-md border border-white/15 px-6 py-3.5 md:px-10 md:py-4 rounded-full text-sm md:text-lg text-slate-200 font-normal shadow-lg">
-            {t.landing?.heroTitle2 || "Don't Choose Your Future. Experience It First."}
+            {t.landing?.heroTitle2 || "Don't Choose Your Career. Experience It First."}
           </div>
         </div>
 

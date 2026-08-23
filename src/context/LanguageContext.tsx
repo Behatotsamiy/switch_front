@@ -20,6 +20,7 @@ export const translations = {
       heroTitle2: "Не выбирай карьеру. Сначала испытай.",
       heroTitle3 : "  Карьерa",
       exploreLink: "Explore the challenge ",
+      missionTitle: "Карьерное развитие",
       heroDesc:
         "SWITCH — это сообщество для девушек, которые хотят учиться, создавать и запускать стартап-проекты.",
       joinBtn: "Присоединиться",
@@ -83,6 +84,18 @@ export const translations = {
         "Зарегистрируйтесь, чтобы получить персональный билет с QR-кодом.",
       speakerRole: "Спикер",
     },
+    partner: {
+      title: "Постройте будущее вместе с нами",
+      company: "Компаниям",
+      companyDesc:
+        "Найдите будущих сотрудниц среди мотивированных участниц, спонсируйте сессию или станьте площадкой для стажировки.",
+        center: "Учебным центрам",
+      centerDesc:
+        "Проведите совместный воркшоп или интегрируйте SWITCH в программу профориентации для ваших студенток.",
+      mentor: "Менторам и экспертам",
+      mentorDesc:
+        "Поделитесь опытом на одной из сессий — не нужно готовить курс, просто расскажите свою историю в индустрии.",
+    },
     theme: { light: "Светлая", dark: "Тёмная", device: "Системная" },
   },
   uz: {
@@ -102,6 +115,7 @@ export const translations = {
       heroTitle2: "Kelajagingni tanlamang. Uni sinab ko'ring.",
       heroTitle3 : "Karyera",
       exploreLink: "Eplore the challenge ",
+      missionTitle: "",
       heroDesc:
         "SWITCH — bu o'rganish, yaratish va startap loyihalarni yo'lga qo'yishni xohlaydigan qizlar hamjamiyati.",
       joinBtn: "Hamjamiyatga qo'shilish",
@@ -165,6 +179,18 @@ export const translations = {
         "Shaxsiy QR-kodli chiptani olish uchun, ro'yxatdan o'ting ",
       speakerRole: "Speaker",
     },
+        partner: {
+      title: "Biz bilan birga kelajakni quring",
+      company: "Kompaniyalarga",
+      companyDesc:
+        "Motivatsiyaga ega ishtirokchilar orasida kelajakdagi xodimlarni toping, sessiyani homiylik qiling yoki stajirovka maydonchasi bo'ling.",
+        center: "O'quv markazlariga",
+      centerDesc:
+        "Birgalikda vebinar o'tkazing yoki SWITCH'ni talabalaringiz uchun kasbga yo'naltirish dasturiga integratsiya qiling.",
+      mentor: "Mentor va ekspertlarga",
+      mentorDesc:
+        "O'zingizning tajribangizni sessiyalardan birida baham ko'ring — kurs tayyorlash shart emas, shunchaki o'z sohangizdagi hikoyangizni ayting.",
+    },
     theme: { light: "Yorug‘", dark: "Qorong‘i", device: "Tizim" },
   },
   en: { 
@@ -181,9 +207,10 @@ export const translations = {
     },
     landing: {
       heroTitle1: "Don't Choose Your Career. Experience It First.",
-      heroTitle2: "Building Futures.",
+      heroTitle2: "Building Future",
       heroTitle3 : "Career",
       exploreLink: "Explore the challenge ",
+      missionTitle: "Career discovery",
       heroDesc:
         "SWITCH is a community for girls who want to learn, build, and launch startup projects.",
       joinBtn: "Join Community",
@@ -245,6 +272,18 @@ export const translations = {
       ticketInstruction:
         "Sign up to receive a personalized ticket with a QR code.",
       speakerRole: "Speaker",
+    },
+        partner: {
+      title: "Build the future together with us",
+      company: "For companies",
+      companyDesc:
+        "Find future employees among motivated participants, sponsor a session, or become an internship platform.",
+        center: "For educational centers",
+      centerDesc:
+        "Make a joint workshop or integrate SWITCH into your student career guidance program.",
+      mentor: "For mentors and experts",
+      mentorDesc:
+        "Share your experience in one of the sessions — no need to prepare a course, just tell your story in the industry.",
     },
     
     theme: { light: "Light", dark: "Dark", device: "Device" },
