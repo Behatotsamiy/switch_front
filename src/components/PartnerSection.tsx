@@ -37,7 +37,7 @@ export const PartnerSection: React.FC = () => {
             {t.partner?.title || 'Станьте частью SWITCH'}
           </h2>
           <p className="mt-4 text-purple-100 text-sm md:text-base leading-relaxed">
-            SWITCH растёт благодаря компаниям, менторам и учебным центрам, которые верят в то же, что и мы.
+            SWITCH is growing due to the support of our partners. We are looking for companies, educational centers, and mentors who want to join us in shaping the future of technology and innovation.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export const PartnerSection: React.FC = () => {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-700 font-bold rounded-full shadow-2xl hover:bg-purple-50 transition active:scale-95 cursor-pointer"
           >
-            <span>Стать партнёром</span>
+            <span>Become a Partner</span>
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
