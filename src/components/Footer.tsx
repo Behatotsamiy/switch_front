@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Send, Camera, Play, Link2 } from 'lucide-react';
 
 const quickLinks = [
-  { label: 'Мероприятия', to: '/events' },
-  { label: 'О нас', to: '/#mission' },
-  { label: 'Партнёрам', to: '/#partner' },
-  { label: 'Войти', to: '/auth' },
+  { label: 'Events ', to: '/events' },
+  { label: 'About Us', to: '/#mission' },
+  { label: 'For Partners', to: '/#partner' },
+  { label: 'Sign In', to: '/auth' },
 ];
 
 const resources = [
   { label: 'FAQ', to: '/#faq' },
-  { label: 'Блог', to: '/#articles' },
-  { label: 'Политика конфиденциальности', to: '/privacy' },
-  { label: 'Условия использования', to: '/terms' },
+  { label: 'Blog', to: '/#articles' },
+  { label: 'Privacy Policy', to: '/privacy' },
+  { label: 'Terms of Service', to: '/terms' },
 ];
 
 const socials = [
@@ -31,8 +31,7 @@ export const Footer: React.FC = () => {
           <div>
             <span className="font-serif text-2xl font-black tracking-wider text-white">SWITCH</span>
             <p className="mt-4 text-sm text-slate-400 leading-relaxed max-w-xs">
-              Сообщество, которое помогает девушкам в Узбекистане исследовать карьеру в технологиях
-              и предпринимательстве через реальный опыт.
+             Community that empowers and connects women in technology, fostering growth, collaboration, and innovation through events, mentorship, and resources.
             </p>
             <div className="flex gap-2.5 mt-6">
               {socials.map((item) => {
@@ -54,7 +53,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Ссылки</h4>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Links</h4>
             <ul className="space-y-2.5">
               {quickLinks.map((l) => (
                 <li key={l.label}>
@@ -67,7 +66,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Ресурсы</h4>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Resources</h4>
             <ul className="space-y-2.5">
               {resources.map((l) => (
                 <li key={l.label}>
@@ -80,7 +79,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Свяжитесь с нами</h4>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Contact Us</h4>
             <ul className="space-y-3.5">
               <li>
                 <a href="mailto:hello@switch-community.uz" className="flex items-center gap-3 text-sm text-slate-400 hover:text-purple-400 transition">
@@ -102,15 +101,15 @@ export const Footer: React.FC = () => {
                 <span className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="w-3.5 h-3.5" />
                 </span>
-                Ташкент, Узбекистан
+                Tashkent, Uzbekistan
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-14 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-slate-500">© {new Date().getFullYear()} SWITCH Community. Все права защищены.</p>
-          <p className="text-xs text-slate-500">Сделано с 💜 для девушек в технологиях</p>
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} SWITCH Community. All rights reserved.</p>
+          <p className="text-xs text-slate-500">Made with 💜 for women in technology</p>
         </div>
       </div>
     </footer>
