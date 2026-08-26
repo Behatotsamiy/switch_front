@@ -104,7 +104,7 @@ export const LandingPage: React.FC = () => {
           </h1>
 
           <div className="inline-block bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2.5 sm:px-8 sm:py-3.5 rounded-full text-xs sm:text-base text-slate-200 font-normal shadow-lg max-w-[90%]">
-            {t.landing?.heroSubtitle || "Don't Choose Your Career. Experience It First."}
+            {t.landing?.heroTitle2 || "Don't Choose Your Career. Experience It First."}
           </div>
         </div>
 
